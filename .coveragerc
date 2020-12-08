@@ -1,0 +1,22 @@
+[run]
+parallel = 1
+concurrency =
+    multiprocessing
+    thread
+source =
+    Orange
+omit =
+    Orange/canvas/*
+    */tests/*
+    */setup.py
+    */*/setup.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    except MemoryError
+    assert False
+    raise AssertionError
+    if (typing\.)?TYPE_CHECKING:

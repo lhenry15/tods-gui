@@ -1,0 +1,133 @@
+import random
+from itertools import takewhile
+from operator import itemgetter
+
+import numpy as np
+
+
+import Orange
+from Orange.util import Reprable
+from Orange.preprocess.score import ANOVA, GainRatio, \
+    UnivariateLinearRegression
+
+__all__ = ["SelectBestFeatures", "SelectRandomFeatures"]
+
+
+class SelectBestFeatures(Reprable):
+    """
+    A feature selector that builds a new dataset consisting of either the top
+    `k` features (if `k` is an `int`) or a proportion (if `k` is a `float`
+    between 0.0 and 1.0), or all those that exceed a given `threshold`. Features
+    are scored using the provided feature scoring `method`. By default it is
+    assumed that feature importance decreases with decreasing scores.
+
+    If both `k` and `threshold` are set, only features satisfying both
+    conditions will be selected.
+
+    If `method` is not set, it is automatically selected when presented with
+    the dataset. Datasets with both continuous and discrete features are
+    scored using a method suitable for the majority of features.
+
+    Parameters
+    ----------
+    method : Orange.preprocess.score.ClassificationScorer, Orange.preprocess.score.SklScorer
+        Univariate feature scoring method.
+
+    k : int or float
+        The number or propotion of top features to select.
+
+    threshold : float
+        A threshold that a feature should meet according to the provided method.
+
+    decreasing : boolean
+        The order of feature importance when sorted from the most to the least
+        important feature.
+    """
+
+    def __init__(self, method=None, k=None, threshold=None, decreasing=True):
+        self.method = method
+        self.k = k
+        self.threshold = threshold
+        self.decreasing = decreasing
+
+    def __call__(self, data):
+        n_attrs = len(data.domain.attributes)
+        if isinstance(self.k, float):
+            effective_k = np.round(self.k * n_attrs).astype(int) or 1
+        else:
+            effective_k = self.k
+
+        method = self.method
+        # select default method according to the provided data
+        if method is None:
+            autoMethod = True
+            discr_ratio = (sum(a.is_discrete
+                               for a in data.domain.attributes)
+                           / len(data.domain.attributes))
+            if data.domain.has_discrete_class:
+                if discr_ratio >= 0.5:
+                    method = GainRatio()
+                else:
+                    method = ANOVA()
+            else:
+                method = UnivariateLinearRegression()
+
+        features = data.domain.attributes
+        try:
+            scores = method(data)
+        except ValueError:
+            scores = self.score_only_nice_features(data, method)
+        best = sorted(zip(scores, features), key=itemgetter(0),
+                      reverse=self.decreasing)
+        if self.k:
+            best = best[:effective_k]
+        if self.threshold:
+            pred = ((lambda x: x[0] >= self.threshold) if self.decreasing else
+                    (lambda x: x[0] <= self.threshold))
+            best = takewhile(pred, best)
+
+        domain = Orange.data.Domain([f for s, f in best],
+                                    data.domain.class_vars, data.domain.metas)
+        return data.transform(domain)
+
+    def score_only_nice_features(self, data, method):
+        # dtype must be defined because array can be empty
+        mask = np.array([isinstance(a, method.feature_type)
+                         for a in data.domain.attributes], dtype=np.bool)
+        features = [f for f in data.domain.attributes
+                    if isinstance(f, method.feature_type)]
+        scores = [method(data, f) for f in features]
+        bad = float('-inf') if self.decreasing else float('inf')
+        all_scores = np.array([bad] * len(data.domain.attributes))
+        all_scores[mask] = scores
+        return all_scores
+
+
+class SelectRandomFeatures(Reprable):
+    """
+    A feature selector that selects random `k` features from an input
+    dataset and returns a dataset with selected features. Parameter
+    `k` is either an integer (number of feature) or float (from 0.0 to
+    1.0, proportion of retained features).
+
+    Parameters
+    ----------
+
+    k : int or float (default = 0.1)
+        The number or proportion of features to retain.
+    """
+
+    def __init__(self, k=0.1):
+        self.k = k
+
+    def __call__(self, data):
+        if isinstance(self.k, float):
+            effective_k = int(len(data.domain.attributes) * self.k)
+        else:
+            effective_k = self.k
+
+        domain = Orange.data.Domain(
+            random.sample(data.domain.attributes,
+                          min(effective_k, len(data.domain.attributes))),
+            data.domain.class_vars, data.domain.metas)
+        return data.transform(domain)

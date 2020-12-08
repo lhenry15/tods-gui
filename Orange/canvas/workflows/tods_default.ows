@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme description="" title="" version="2.0">
+	<nodes>
+		<node id="0" name="Beginning" position="(122.0, 87.0)" project_name="Orange3" qualified_name="Orange.widgets.data_processing.Beginning.Beginning" title="Beginning" version="" />
+		<node id="1" name="Pipeline Console" position="(756.0, 307.0)" project_name="Orange3" qualified_name="Orange.widgets.data_processing.OWpipeline_console.OWPythonScript" title="Pipeline Console" version="" />
+		<node id="2" name="ExtractColumn" position="(433.0, 109.0)" project_name="Orange3" qualified_name="Orange.widgets.data_processing.OWExtractColumn.OWExtractColumn" title="ExtractColumn" version="" />
+		<node id="3" name="Dataset2DataFrame" position="(196.0, 145.0)" project_name="Orange3" qualified_name="Orange.widgets.data_processing.OWDataset2DataFrame.OWDataset2DataFrame" title="Dataset2DataFrame" version="" />
+		<node id="4" name="ColumnParser" position="(303.0, 146.0)" project_name="Orange3" qualified_name="Orange.widgets.data_processing.OWColumnParser.OWColumnParser" title="ColumnParser" version="" />
+		<node id="5" name="ConstructPrediction" position="(614.0, 314.0)" project_name="Orange3" qualified_name="Orange.widgets.data_processing.OWConstructPrediction.OWConstructPrediction" title="ConstructPrediction" version="" />
+	</nodes>
+	<links>
+		<link enabled="true" id="0" sink_channel="One Input Primitve" sink_node_id="3" source_channel="Primitive Information" source_node_id="0" />
+		<link enabled="true" id="1" sink_channel="One Input Primitve" sink_node_id="4" source_channel="Output results" source_node_id="3" />
+		<link enabled="true" id="2" sink_channel="One Input Primitve" sink_node_id="2" source_channel="Output results" source_node_id="4" />
+		<link enabled="true" id="3" sink_channel="Input info" sink_node_id="1" source_channel="Output results" source_node_id="5" />
+		<link enabled="true" id="4" sink_channel="Reference" sink_node_id="5" source_channel="Output results" source_node_id="4" />
+	</links>
+	<annotations>
+		<arrow end="(527.0, 177.0)" fill="#C1272D" id="0" start="(599.0, 124.00000000000001)" />
+		<text font-family=".AppleSystemUIFont" font-size="16" id="1" rect="(543.0, 48.0, 209.0, 67.0)" type="text/plain">Add your pipeline between ExtractColumn and ConstructPrediction</text>
+	</annotations>
+	<thumbnail />
+	<node_properties>
+		<properties format="literal" node_id="0">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x02b\x00\x00\x01V\x00\x00\x03)\x00\x00\x02\n\x00\x00\x02b\x00\x00\x01l\x00\x00\x03)\x00\x00\x02\n\x00\x00\x00\x00\x00\x00\x00\x00\x05\xa0\x00\x00\x02b\x00\x00\x01l\x00\x00\x03)\x00\x00\x02\n', '__version__': 1}</properties>
+		<properties format="literal" node_id="1">{'controlAreaVisible': True, 'currentScriptIndex': 0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x016\x00\x00\x00H\x00\x00\x04U\x00\x00\x03\x17\x00\x00\x016\x00\x00\x00^\x00\x00\x04U\x00\x00\x03\x17\x00\x00\x00\x00\x00\x00\x00\x00\x05\xa0\x00\x00\x016\x00\x00\x00^\x00\x00\x04U\x00\x00\x03\x17', 'scriptLibrary': [{'name': 'Hello world', 'script': "print('Hello world')\n", 'filename': None}], 'scriptText': "print('Hello world')\n", 'splitterState': b'\x00\x00\x00\xff\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00q\x00\x00\x00q\x01\xff\xff\xff\xff\x01\x00\x00\x00\x02\x00', '__version__': 2}</properties>
+		<properties format="pickle" node_id="2">gASV/QAAAAAAAAB9lCiMEWFkZF9pbmRleF9jb2x1bW5zlImMCGF1dG9zZW5klIiMEmNvbnRyb2xB
+cmVhVmlzaWJsZZSIjBNleGNsdWRlX2NvbHVtbnNfYnVmlCmMC21hdGNoX2xvZ2ljlIwDYW55lIwG
+bmVnYXRllImME3NhdmVkV2lkZ2V0R2VvbWV0cnmUTowSc2VtYW50aWNfdHlwZXNfYnVmlIw4aHR0
+cHM6Ly9tZXRhZGF0YS5kYXRhZHJpdmVuZGlzY292ZXJ5Lm9yZy90eXBlcy9BdHRyaWJ1dGWUhZSM
+D3VzZV9jb2x1bW5zX2J1ZpQpjAtfX3ZlcnNpb25fX5RLAXUu
+</properties>
+		<properties format="literal" node_id="3">{'controlAreaVisible': True, 'savedWidgetGeometry': None, '__version__': 1}</properties>
+		<properties format="pickle" node_id="4">gASVDQEAAAAAAAB9lCiMEWFkZF9pbmRleF9jb2x1bW5zlIiMCGF1dG9zZW5klIiMEmNvbnRyb2xB
+cmVhVmlzaWJsZZSIjBNleGNsdWRlX2NvbHVtbnNfYnVmlCmMEmZ1enp5X3RpbWVfcGFyc2luZ5SI
+jCBwYXJzZV9jYXRlZ29yaWNhbF90YXJnZXRfY29sdW1uc5SJjBVyZXBsYWNlX2luZGV4X2NvbHVt
+bnOUiIwNcmV0dXJuX3Jlc3VsdJSMB3JlcGxhY2WUjBNzYXZlZFdpZGdldEdlb21ldHJ5lE6MDnRl
+c3RfdHJlYXRtZW50lEsAjA91c2VfY29sdW1uc19idWaUKYwLX192ZXJzaW9uX1+USwF1Lg==
+</properties>
+		<properties format="pickle" node_id="5">gASViwAAAAAAAAB9lCiMCGF1dG9zZW5klIiMEmNvbnRyb2xBcmVhVmlzaWJsZZSIjBNleGNsdWRl
+X2NvbHVtbnNfYnVmlCmME3NhdmVkV2lkZ2V0R2VvbWV0cnmUTowOdGVzdF90cmVhdG1lbnSUSwCM
+D3VzZV9jb2x1bW5zX2J1ZpQpjAtfX3ZlcnNpb25fX5RLAXUu
+</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>

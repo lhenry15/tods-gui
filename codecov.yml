@@ -1,0 +1,12 @@
+comment:
+  layout: header, diff, changes, sunburst, uncovered
+coverage:
+  status:
+    patch:
+      default:
+        target: '95'
+    project:
+      default:
+        target: auto
+        # https://docs.codecov.io/docs/commit-status#threshold
+        threshold: 1%
