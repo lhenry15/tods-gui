@@ -1,3 +1,4 @@
+*Currently only works with dev version of TODS, will be merged and officially released very shortly
 TODS-GUI aims on providing intuitive graph user interface (GUI) to allow users easily construct and test their own pipeline.
 [TODS] is an end-to-end time series outlier detection system providing comprehensive functionalities which allow users perform data mining procedure on time series data toward constructing end-to-end outlier detection pipeline. The detail of the API can be found in [TODS-Doc].
 
