@@ -4,7 +4,7 @@ from xml.sax.saxutils import escape
 import numpy as np
 import scipy.sparse as sp
 
-from AnyQt.QtCore import Qt, QSize, QLineF, pyqtSignal as Signal
+from AnyQt.QtCore import Qt, QSize, QPointF, QLineF, pyqtSignal as Signal
 from AnyQt.QtGui import QPainter, QPen, QColor
 from AnyQt.QtWidgets import QApplication, QGraphicsLineItem
 
@@ -14,7 +14,7 @@ from pyqtgraph.graphicsItems.ViewBox import ViewBox
 
 from orangewidget.utils.visual_settings_dlg import VisualSettingsDialog
 
-from Orange.data import Table, DiscreteVariable
+from Orange.data import Table, DiscreteVariable, ContinuousVariable
 from Orange.data.sql.table import SqlTable
 from Orange.statistics.util import countnans, nanmean, nanmin, nanmax, nanstd
 from Orange.widgets import gui, report
@@ -416,9 +416,29 @@ class LinePlotGraph(pg.PlotWidget, ParameterSetter):
 
 
 class ProfileGroup:
-    def __init__(self, data, indices, color, graph):
-        self.x_data = np.arange(1, data.X.shape[1] + 1)
-        self.y_data = data.X
+    def __init__(self, data, indices, color, graph, original_data):
+        # self.x_data = np.arange(1, data.X.shape[1] + 1)
+        
+        # self.y_data = data.X
+
+        self.original_data = original_data
+        # print(self.original_data)
+
+        self.x_data = np.arange(len(indices))
+        # print(type(self.x_data))
+        self.y_data = np.rot90(np.fliplr(data.X))
+        # print(type(self.y_data))
+
+        # print('data in profile group')
+        # print(data)
+
+        # self.x_data = np.array(data.get_column_view(0)[0])
+        # print('x')
+        # print(self.x_data)
+        # self.y_data = np.array(data.get_column_view(1)[0])
+        # print('y')
+        # print(self.y_data)
+
         self.indices = indices
         self.ids = data.ids
         self.color = color
@@ -448,10 +468,17 @@ class ProfileGroup:
         ]
 
     def _get_profiles_curve(self):
+
+        # c = QColor(*self.color)
+        # dots = pg.ScatterPlotItem(pen=c, brush=c, size=10, shape="s")
+        # self.graph.addItem(dots, escape('d'))
+
+
         x, y, con = self.__get_disconnected_curve_data(self.y_data)
         pen = self.make_pen(self.color)
         curve = pg.PlotCurveItem(x=x, y=y, connect=con, pen=pen)
         Updater.update_lines([curve], **self.graph.line_settings)
+        
         return curve
 
     def _get_sel_profiles_curve(self):
@@ -492,10 +519,12 @@ class ProfileGroup:
 
     def set_visible_profiles(self, show_profiles=True, show_range=True, **_):
         if not self.profiles_added and show_profiles:
+            # print('1')
             self.profiles_added = True
             self.graph.addItem(self.profiles)
             self.graph.addItem(self.sel_profiles)
         if not self.sub_profiles_added and (show_profiles or show_range):
+            # print('2')
             self.sub_profiles_added = True
             self.graph.addItem(self.sub_profiles)
         self.profiles.setVisible(show_profiles)
@@ -563,6 +592,8 @@ class ProfileGroup:
     @staticmethod
     def __get_disconnected_curve_data(y_data):
         m, n = y_data.shape
+        # m = len(y_data)
+        # n = 1
         x = np.arange(m * n) % n + 1
         y = y_data.A.flatten() if sp.issparse(y_data) else y_data.flatten()
         connect = np.ones_like(y, bool)
@@ -590,7 +621,10 @@ class OWLinePlot(OWWidget):
 
     class Inputs:
         data = Input("Data", Table, default=True)
+        # data = Input("Features", AttributeList)
         data_subset = Input("Data Subset", Table)
+
+        
 
     class Outputs:
         selected_data = Output("Selected Data", Table, default=True)
@@ -663,12 +697,12 @@ class OWLinePlot(OWWidget):
                      tooltip="Show standard deviation")
 
         self.group_vars = DomainModel(
-            placeholder="None", separators=False, valid_types=DiscreteVariable)
+            placeholder="None", separators=False, valid_types=ContinuousVariable)
         self.group_view = gui.listView(
             self.controlArea, self, "group_var", box="Group by",
             model=self.group_vars, callback=self.__group_var_changed,
             sizeHint=QSize(30, 100))
-        self.group_view.setEnabled(False)
+        self.group_view.setEnabled(True)
 
         plot_gui = OWPlotGUI(self)
         plot_gui.box_zoom_select(self.controlArea)
@@ -695,6 +729,12 @@ class OWLinePlot(OWWidget):
         self._update_visibility("error")
 
     def __group_var_changed(self):
+        # print('callback called')
+        # print(self.subset_indices)
+        # print(self.selection)
+        # print(self.subset_data)
+        # print(self)
+        # print(self.group_var)
         if self.data is None or not self.graph_variables:
             return
         self.plot_groups()
@@ -702,26 +742,43 @@ class OWLinePlot(OWWidget):
         self._update_sel_profiles_and_range()
         self._update_sel_profiles_color()
         self._update_sub_profiles()
+        # print('callback called2')
+        # print(self.subset_indices)
+        # print(self.selection)
+        # print(self.subset_data)
 
     @Inputs.data
     @check_sql_input
     def set_data(self, data):
+        # print('qwerqwerqwerqwerqwerqwer', self.data)
         self.closeContext()
         self.data = data
+        # print('line 712', self.data)
+        # print('line 713', type(data))
         self._set_input_summary()
         self.clear()
         self.check_data()
         self.check_display_options()
 
         if self.data is not None:
+            # print('qwerqwerqwerqwerqwerqwer', self.data)
             self.group_vars.set_domain(self.data.domain)
             self.group_view.setEnabled(len(self.group_vars) > 1)
             self.group_var = self.data.domain.class_var \
                 if self.data.domain.has_discrete_class else None
 
+            # self.group_var = self.data.domain
+            # print('groupvar', self.group_var)
+
         self.openContext(data)
         self.setup_plot()
         self.unconditional_commit()
+        # print('line 729', self.data)
+        # print('line 730', self.group_vars)
+        # print('line 731', self.group_var)
+        # print(type(self.group_var))
+        # print('line 731', self.graph_variables)
+        
 
     def check_data(self):
         def error(err):
@@ -783,6 +840,9 @@ class OWLinePlot(OWWidget):
             return
 
         ticks = [a.name for a in self.graph_variables]
+        # for a in self.graph_variables:
+        #     print(a.name)
+        #     print(type(a.name))
         self.graph.getAxis("bottom").set_ticks(ticks)
         self.plot_groups()
         self.apply_selection()
@@ -792,17 +852,124 @@ class OWLinePlot(OWWidget):
     def plot_groups(self):
         self._remove_groups()
         data = self.data[self.valid_data, self.graph_variables]
+        # data = np.rot90(data)
+        # print('line 807', data)
+        # print('self.valid data: ', self.valid_data)
+        # print('self.graph variables, ', self.graph_variables)
+        # print('group_var', self.group_var)
+
+        # if self.group_var is None:
+        #     self._plot_group(data, np.where(self.valid_data)[0])
+        # else:
+        #     class_col_data, _ = self.data.get_column_view(self.group_var)
+        #     for index in range(len(self.group_var.values)):
+        #         mask = np.logical_and(class_col_data == index, self.valid_data)
+        #         indices = np.flatnonzero(mask)
+        #         if not len(indices):
+        #             continue
+        #         group_data = self.data[indices, self.graph_variables]
+        #         # print('group data: ', group_data, indices, index)
+        #         self._plot_group(group_data, indices, index)
+
+        # print(self.group_var)
+
         if self.group_var is None:
-            self._plot_group(data, np.where(self.valid_data)[0])
+            # self._plot_group(data, np.where(self.valid_data)[0])
+            indices = []
+            for i in range(len(self.data)):
+                indices.append(i)
+
+            for i in range(len(self.graph_variables)):
+                group_data = self.data[indices, i]
+                self._plot_group(group_data, indices, 0)
         else:
-            class_col_data, _ = self.data.get_column_view(self.group_var)
-            for index in range(len(self.group_var.values)):
-                mask = np.logical_and(class_col_data == index, self.valid_data)
-                indices = np.flatnonzero(mask)
-                if not len(indices):
-                    continue
-                group_data = self.data[indices, self.graph_variables]
-                self._plot_group(group_data, indices, index)
+            # class_col_data, _ = self.data.get_column_view(self.group_var)
+            # for index in range(len(self.graph_variables) - 2):
+            #     # mask = np.logical_and(class_col_data == index, self.valid_data)
+            #     # indices = np.flatnonzero(mask)
+            #     # print(type(indices))
+            #     # print(indices)
+            #     # if not len(indices):
+            #     #     continue
+
+                
+
+
+            #     print('yea')
+            #     group_data = self.data[self.data.get_column_view(0)[0], [self.graph_variables[1], self.graph_variables[index + 2]]]
+            #     print('group data: ', group_data)
+            #     self._plot_group(group_data, self.data.get_column_view(0)[0], index)
+            # print('group variables: ', self.graph_variables)
+
+
+            # temp = []
+            # temp.append(self.graph_variables[1])
+            # temp.append(self.graph_variables[2])
+            # # print(temp)
+
+
+            # print(self.graph_variables)
+            # temp = self.graph_variables.pop(-1)
+            # print(self.graph_variables)
+            # temp = self.graph_variables.pop(-1)
+            # print(self.graph_variables)
+            # temp = self.graph_variables.pop(-1)
+            # print(self.graph_variables)
+            # temp = self.graph_variables.pop(-1)
+            # print(self.graph_variables)
+            # temp = self.graph_variables.pop(0)
+            # print(self.graph_variables)
+
+            # print(self.graph_variables == temp)
+
+            # temp = []
+            # for i in self.graph_variables:
+            #     temp.append(i)
+            # temp.pop(-1)
+            # temp.pop(-1)
+            # temp.pop(-1)
+            # temp.pop(-1)
+            # temp.pop(0)
+            # temp.pop(0)
+            # print(temp)
+            # print([self.graph_variables[2]])
+            # print(temp == [self.graph_variables[2]])
+
+            indices = []
+            for i in range(len(self.data)):
+                indices.append(i)
+
+
+
+            group_data = self.data[indices, self.group_var]
+            # print('group data')
+            # print(group_data)
+
+            self._plot_group(group_data, indices, 0)
+
+            # for i in range(len(self.graph_variables) - 2):
+            #     group_data = self.data[indices, i + 2]
+            #     self._plot_group(group_data, indices, 0)
+            
+
+
+            # for i in range(2, len(data[0])):
+            #     timestamp = list(self.data.get_column_view(1)[0])
+            #     target = list(self.data.get_column_view(i)[0])
+            #     group_data = [timestamp, target]
+
+                # group_data = np.rot90(np.fliplr(group_data))
+                # print('group data2: ', pandas_to_orange(pd.DataFrame(group_data)).get_column_view(0)[1])
+
+
+                
+                # self._plot_group(pandas_to_orange(pd.DataFrame(group_data)), list(self.data.get_column_view(0)[0]), i)
+
+        # self._plot_group(self.data, indices, index)
+
+
+
+
         self.graph.update_legend(self.group_var)
         self.graph.groups = self.__groups
         self.graph.view_box.add_profiles(data.X)
@@ -816,16 +983,31 @@ class OWLinePlot(OWWidget):
 
     def _plot_group(self, data, indices, index=None):
         color = self.__get_group_color(index)
-        group = ProfileGroup(data, indices, color, self.graph)
+        # print(self.data)
+        group = ProfileGroup(data, indices, color, self.graph, self.data)
+        # print('group_x_data')
+        # print(group.x_data)
+        # print('group_y_data')
+        # print(group.y_data)
         kwargs = self.__get_visibility_flags()
         group.set_visible_error(**kwargs)
         group.set_visible_mean(**kwargs)
         group.set_visible_range(**kwargs)
         group.set_visible_profiles(**kwargs)
         self.__groups.append(group)
+        # print(self.__grou)
 
     def __get_group_color(self, index):
         if self.group_var is not None:
+            # print('color')
+            # print(QColor(*self.group_var.colors[index]))
+            # print(*self.group_var.colors[index])
+            # print(self.group_var.colors)
+            # print(self.group_var)
+            # print(type(self.group_var))
+            from random import randrange
+            # print(randrange(256))
+            # return QColor([randrange(256), randrange(256), randrange(256)])
             return QColor(*self.group_var.colors[index])
         return QColor(LinePlotStyle.DEFAULT_COLOR)
 
@@ -841,6 +1023,8 @@ class OWLinePlot(OWWidget):
         if not self.show_profiles:
             return
         for group in self.__groups:
+            # print(bool(self.subset_indices))
+            # print(bool(self.selection))
             has_sel = bool(self.subset_indices) or bool(self.selection)
             group.update_profiles_color(has_sel)
 
@@ -888,6 +1072,7 @@ class OWLinePlot(OWWidget):
     def apply_selection(self):
         if self.data is not None and self.__pending_selection is not None:
             sel = [i for i in self.__pending_selection if i < len(self.data)]
+            print('sel', sel)
             mask = np.zeros(len(self.data), dtype=bool)
             mask[sel] = True
             mask = mask[self.valid_data]
@@ -895,6 +1080,9 @@ class OWLinePlot(OWWidget):
             self.__pending_selection = None
 
     def selection_changed(self, mask):
+        print('here')
+        # print("self.data coming")
+        # print(self.data[1])
         if self.data is None:
             return
         # need indices for self.data: mask refers to self.data[self.valid_data]

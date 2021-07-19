@@ -123,12 +123,78 @@ def run_pipeline(pipepline_info, stdout=None):
         dataset = generate_dataset(df, target_index)
         print(df)
 
+        # df.to_csv('./temp.csv', index = False)
+
+        print("------------------------------------------------------------------------------------------------")
+
         # Load the default pipeline
         pipeline = load_pipeline(pipeline_path)
 
+        print("------------------------------------------------------------------------------------------------")
+        
         # # Run the pipeline
         pipeline_result = evaluate_pipeline(dataset, pipeline, metric)
-        print(pipeline_result)
+        # print(pipeline_result)
+        # print(type(pipeline_result))
+        # from axolotl.backend.d3m_grpc.server import encode_scores
+        # import axolotl
+        # axolotl.backend.d3m_grpc.server.encode_scores(pipeline_result)
+
+
+        # ranking = {
+        #     'metric': 'RANK',
+        #     'value': pipeline_result.rank,
+        #     'randomSeed': 0,
+        #     'fold': 0,
+        # }
+
+        # all_scores = pipeline_result.scores.append(ranking, ignore_index=True)
+        # print(all_scores)
+
+        # print("------------------------------------------------------------------------------------------------")
+        # print(pipeline_result.outputs[0])
+        # print("------------------------------------------------------------------------------------------------")
+        # print(pipeline_result.outputs[1])
+        # print("------------------------------------------------------------------------------------------------")
+        # print(type(pipeline_result.outputs[0]))
+        # print("------------------------------------------------------------------------------------------------")
+        # print("------------------------------------------------------------------------------------------------")
+        # print("------------------------------------------------------------------------------------------------")
+        # print("------------------------------------------------------------------------------------------------")
+        # # print(pipeline_result.outputs[0]['outputs'])
+        # print(pipeline_result.outputs[0].values())
+        # print("------------------------------------------------------------------------------------------------")
+        print(pipeline_result.outputs)
+
+        # print(pipeline_result.outputs[0] == pipeline_result.outputs[1])
+
+        # print(type(pipeline_result.outputs))
+
+
+        # lst = pipeline_result.outputs[0].values()
+
+        # for i in range(10):
+        #     print(lst[i])
+
+        # print(pipeline_result.outputs[0]['outputs.0'])
+        # print(type(pipeline_result.outputs[0]['outputs.0']))
+        # for i in range(10):
+        #     print(pipeline_result.outputs[0]['outputs.0'][i])
+
+        df2 = pipeline_result.outputs[0]['outputs.0']
+        # df2.drop(['d3mIndex'], axis=1)
+        df2 = df2.iloc[: , 1:]
+        # df2.rename(columns={'ground_truth': 'pipeline_result_ground_truth'})
+        # data.rename(columns={'groud_truth':'pipeline_result_groud_truth'}, inplace=True)
+        # temp.to_csv('./temp2.csv', index = False)
+        
+        df_out = pd.concat([df, df2], axis=1)
+        # df_out.columns = ['d3mIndex','timestamp','value','ground_truth','pipeline_result_ground_truth']
+        # df_out.set_axis([*df.columns[:-1], 'pipeline_result_ground_truth'], axis=1, inplace=False)
+        df_out.columns = [*df_out.columns[:-1], 'pipeline_result_ground_truth']
+        df_out.to_csv('./temp2.csv', index = False)
+
+        return df_out
 
     sys.stdout.flush()
     sys.stdout = default_stdout

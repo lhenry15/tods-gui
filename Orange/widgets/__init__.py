@@ -13,8 +13,8 @@ import Orange
 def widget_discovery(discovery):
     dist = pkg_resources.get_distribution("Orange3")
     pkgs = [
-        #"Orange.widgets.data",
-        #"Orange.widgets.visualize",
+        "Orange.widgets.data",
+        "Orange.widgets.visualize",
         "Orange.widgets.data_processing",
         "Orange.widgets.timeseries_processing",
         "Orange.widgets.feature_analysis",

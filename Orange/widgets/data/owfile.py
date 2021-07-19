@@ -507,6 +507,8 @@ class OWFile(widget.OWWidget, RecentPathsWComboMixin):
         summary = len(table) if table else self.info.NoOutput
         details = format_summary_details(table) if table else ""
         self.info.set_output_summary(summary, details)
+        print('type of output table ', type(table))
+        print('type of output data: ', type(self.data))
         self.Outputs.data.send(table)
         self.apply_button.setEnabled(False)
 

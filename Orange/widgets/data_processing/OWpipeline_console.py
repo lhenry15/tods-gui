@@ -822,15 +822,147 @@ class OWPythonScript(OWWidget):
             settings["scriptLibrary"] = library
 
     def run_pipeline(self):
-        print('run_pipeline')
-        run_pipeline(self.output_list_ending, stdout=self.console)
+        # print('run_pipeline')
+        temp = run_pipeline(self.output_list_ending, stdout=self.console)
+        # print('testdfgdfgdfg')
+        # print(temp)
         self.console.new_prompt(sys.ps1) # flush the console
+
+        # import matplotlib as plt
+        # from matplotlib import pyplot as plt
+        # import seaborn as sns
+
+        # # temp = temp.rename(columns={temp.columns[0]: "row_idx"})
+
+        # # temp = temp.replace({"RECOVERING": int(1), "NORMAL": int(0), "BROKEN": int(1)})
+
+        # temp2 = temp['timestamp']
+
+        # temp.fillna(method='ffill', inplace=True)
+
+        # # df = df.drop(['sensor_15'], axis=1)
+
+        # temp = temp.sample(frac=0.01)
+
+        # cols = list(temp.columns)[3:-2]
+
+        # fig = plt.figure(figsize=(50,4)) 
+
+        # sns.lineplot(x = temp['timestamp'], y = temp[cols], dashes=False)
+
+        # sns.scatterplot(x = "timestamp", y="pipeline_result_ground_truth", data=temp[(temp['pipeline_result_ground_truth'] > 0)], color='red', zorder=999)##outlier
+
+        # fig.savefig('./temp.png')
+        # fig.show()
+        import pandas as pd
+
+        f = pd.read_csv('temp2.csv')
+
+        from matplotlib import pyplot as plt
+        import seaborn as sns
+
+        # temp2 = temp['timestamp']
+
+        # print(temp[list(temp.columns)[1]].shape)
+
+        # print(temp[list(temp.columns)[3:-2]].shape)
+
+        temp.fillna(method='ffill', inplace=True)
+
+        # df = df.drop(['sensor_15'], axis=1)
+
+        # temp = temp.sample(frac=0.01)
+
+        # cols = list(temp.columns)[2]
+
+
+        # cols = list(cols).append('timestamp')
+        # print(t)
+        fig = plt.figure(figsize=(50,4))
+
+        l = []
+        for col in temp.columns:
+            if 'value' in str(col):
+                l.append(col)
+
+        # print(l)
+
+        for i in l:
+            sns.lineplot(x = 'timestamp', y = i, data = temp, dashes=False)
+            sns.scatterplot(x = "timestamp", y=i, data=temp[(temp['pipeline_result_ground_truth'] > 0)], color='red', zorder=999)##outlier
+
+
+        # sns.lineplot(x = 'timestamp', y = 'value_0', data = temp, dashes=False)
+        # sns.lineplot(x = 'timestamp', y = 'value_1', data = temp, dashes=False)
+        # sns.lineplot(x = 'timestamp', y = 'value_2', data = temp, dashes=False)
+        # sns.lineplot(x = 'timestamp', y = 'value_2', data = temp, dashes=False)
+        # sns.lineplot(x = 'timestamp', y = 'value_4', data = temp, dashes=False)
+
+        # sns.scatterplot(x = "timestamp", y="value_0", data=temp[(temp['pipeline_result_ground_truth'] > 0)], color='red', zorder=999)##outlier
+        # sns.scatterplot(x = "timestamp", y="value_1", data=temp[(temp['pipeline_result_ground_truth'] > 0)], color='red', zorder=999)##outlier
+        # sns.scatterplot(x = "timestamp", y="value_2", data=temp[(temp['pipeline_result_ground_truth'] > 0)], color='red', zorder=999)##outlier
+        # sns.scatterplot(x = "timestamp", y="value_3", data=temp[(temp['pipeline_result_ground_truth'] > 0)], color='red', zorder=999)##outlier
+        # sns.scatterplot(x = "timestamp", y="value_4", data=temp[(temp['pipeline_result_ground_truth'] > 0)], color='red', zorder=999)##outlier
+        # sns.scatterplot(x = "timestamp", y="pipeline_result_ground_truth", data=temp, color='red', zorder=999)##outlier
+        fig.savefig('./temp.png')
+        fig.show()
+
+        # table = 
+
+
+
+
+        import numpy as np
+        import pandas as pd
+        import Orange
+        import csv
+        from io import StringIO
+        from collections import OrderedDict
+        from Orange.data import Table, Domain, ContinuousVariable, DiscreteVariable
+
+
+        def pandas_to_orange(df):
+            domain, attributes, metas = construct_domain(df)
+            orange_table = Orange.data.Table.from_numpy(domain = domain, X = df[attributes].values, Y = None, metas = df[metas].values, W = None)
+            return orange_table
+
+        def construct_domain(df):
+            columns = OrderedDict(df.dtypes)
+            attributes = OrderedDict()
+            metas = OrderedDict()
+            for name, dtype in columns.items():
+
+                if issubclass(dtype.type, np.number):
+                    if len(df[name].unique()) >= 13 or issubclass(dtype.type, np.inexact) or (df[name].max() > len(df[name].unique())):
+                        attributes[name] = Orange.data.ContinuousVariable(name)
+                    else:
+                        df[name] = df[name].astype(str)
+                        attributes[name] = Orange.data.DiscreteVariable(name, values = sorted(df[name].unique().tolist()))
+                else:
+                    metas[name] = Orange.data.StringVariable(name)
+
+            domain = Orange.data.Domain(attributes = attributes.values(), metas = metas.values())
+
+            return domain, list(attributes.keys()), list(metas.keys())
+
+
+
+        ggg = pandas_to_orange(temp)
+        # print("ggg type", type(ggg))
+
+        self.Outputs.data.send(ggg)
+
+
         pass
 
     def build_pipeline(self):
         print('build_pipeline')
         build_pipeline(self.output_list_ending, self.primitive_mapping, stdout=self.console)
+        # print('test printioureghnipeudhrgfni')
+        # print(temp)
         self.console.new_prompt(sys.ps1) # flush the console
+        # print('test printioureghnipeudhrgfni')
+        # print(temp)
         pass
 
     def pipeline_wrapping(self, pipline_in):
